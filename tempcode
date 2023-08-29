@@ -1,0 +1,104 @@
+void system_init(){
+		//1.开启外部时钟 HSE
+		RCC->CR |= 1 << 16;
+		//等待外部时钟HSE就绪
+		while ((RCC->CR & (1 << 17)) == 0) {}
+		
+		//2. PLLCLK设置
+		//设置 PLL 倍频系数 9倍频
+		RCC->CFGR |= 7 << 18;
+		//设置 HSE 作为 PLLCLK 输入源
+		RCC->CFGR |= 1 << 16;
+		
+		//3. 打开 PLL 电路
+		RCC->CR |= 1 << 24;
+		//等待 PLL 电路就绪
+		while ((RCC->CR & (1 << 25)) == 0) {};
+		
+		//4. 设置 FLASH 时延 让HSE能正常工作
+		FLASH->ACR |= 1<<1;
+		
+		//5. SYSCLK设置
+		//设置 PLL 作为 SYSCLK 输入源
+		RCC->CFGR |= 1 << 1;
+		//等待 SYSCLK 就绪
+		while ((RCC->CFGR & (1 << 3)) == 0) {};
+		
+		//6. 设置 AHP1 预分频系数为2
+		RCC->CFGR |= 1 << 10;
+}
+
+/* 
+.equ REG_ADDRCR, 0x40021000
+  LDR R0, =REG_ADDRCR
+  LDR R1, [R0]
+  ORRS R1, R1, #0x00010000
+  STR R1, [R0]
+  
+wait_bit17_set:
+    LDR R0, =REG_ADDRCR
+    LDR R1, [R0]
+    TST R1, #0x00020000
+    BEQ wait_bit17_set
+
+.equ REG_ADDRCFGR, 0x40021004
+
+    LDR R0, =REG_ADDRCFGR
+    LDR R1, [R0]
+    ORRS R1, R1, #0x001D0000
+    STR R1, [R0]
+
+  LDR R0, =REG_ADDRCR
+  LDR R1, [R0]
+  ORRS R1, R1, #0x01000000
+  STR R1, [R0]
+
+wait_bit25_set:
+    LDR R0, =REG_ADDRCR
+    LDR R1, [R0]
+    TST R1, #0x02000000
+    BEQ wait_bit25_set
+
+.equ REG_ADDRFLASHACR, 0x40022000
+  LDR R0, =REG_ADDRFLASHACR
+  LDR R1, [R0]
+  ORRS R1, R1, #0x00000002
+  STR R1, [R0]
+
+
+    LDR R0, =REG_ADDRCFGR
+    LDR R1, [R0]
+    ORRS R1, R1, #0x00000002
+    STR R1, [R0]
+
+wait_bit3_set:
+    LDR R0, =REG_ADDRCFGR
+    LDR R1, [R0]
+    TST R1, #0x00000008
+    BEQ wait_bit3_set
+
+    LDR R0, =REG_ADDRCFGR
+    LDR R1, [R0]
+    ORRS R1, R1, #0x00000400
+    STR R1, [R0]
+
+.equ REG_ADDRAPB2ENR, 0x40021018
+
+    LDR R0, =REG_ADDRAPB2ENR
+    LDR R1, [R0]
+    ORRS R1, R1, #0x00000008
+    STR R1, [R0]
+
+.equ REG_ADDRGPIOB, 0x40010C04
+
+    LDR R0, =REG_ADDRGPIOB
+    LDR R1, [R0]
+    ORRS R1, R1, #0x00030000
+    STR R1, [R0]
+.equ REG_ADDRGPIOBODR, 0x40010C0C
+
+    LDR R0, =REG_ADDRGPIOBODR
+    LDR R1, [R0]
+    ORRS R1, R1, #0x00000000
+    STR R1, [R0]
+*/
